@@ -76,7 +76,7 @@ class  ThreadedSerial(threading.Thread):
 
   # writes data to the serial port, automatically re encodes data to
   def write(self, data):
-    self.__serialConnection.write(data)
+    self.__serialConnection.write(data.encode('ascii'))
     self.__serialConnection.flush()
 
   # overloads the theads run class to provide non blocking Seral responses
@@ -102,11 +102,12 @@ class  ThreadedSerial(threading.Thread):
 
       decoded = str(read.decode('utf-8', errors='ignore').rstrip().replace('\n', '').replace('\r', ''))
 
+      print ("serialIn:decoded")
       # check whatever you need to check here
       if self.__serialRecieveFunc is not None:
         # Call the function passing it the line as a parami
         self.__serialRecieveFunc(decoded)
-      time.sleep(0.5)
+      time.sleep(0.01)
 
   def stop(self):
     self.__dataLock.acquire()

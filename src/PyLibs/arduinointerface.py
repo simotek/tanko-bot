@@ -95,4 +95,8 @@ class ArduinoInterface:
       print("Unknown command:"+command)
 
   def sendDriveMotorSpeed(self, args):
-    self.__serial.write(CONST_SERVER_COMMAND_MOTOR_DRIVE+":"+args[0]+","+args[1])
+    message = str(CONST_SERVER_COMMAND_MOTOR_DRIVE+":"+args[0]+","+args[1]+"\n")
+ 
+    print (message)
+
+    self.__serial.write(message)
