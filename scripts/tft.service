@@ -1,0 +1,10 @@
+[Unit]
+Description=Load TFT Module
+
+[Service]
+ExecStart=/usr/bin/tftload start
+ExecStop=/usr/bin/tftload stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

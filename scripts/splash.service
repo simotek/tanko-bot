@@ -1,0 +1,13 @@
+[Unit]
+Description=Shows splash screen
+Requires=tft.service
+After=tft.service robotmain.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/fbi -T 13 -d /dev/fb2 -noverbose /usr/share/wallpapers/1-110313112A3.jpg
+RemainAfterExit=yes
+User=root
+
+[Install]
+WantedBy=multi-user.target
