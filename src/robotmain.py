@@ -50,7 +50,7 @@ if __name__ == '__main__':
   else:
     arduinoCallbacks.annLeftDriveMotor.register(uiServer.announceLeftMotorSpeed)
     arduinoCallbacks.annRightDriveMotor.register(uiServer.announceRightMotorSpeed)
-    arduinoInterface = arduinoInterface(arduinoCallbacks)
+    arduinoInterface = ArduinoInterface(arduinoCallbacks)
 
     servercallbacks = uiServer.getCallbacks()
     servercallbacks.sendDriveMotor.register(arduinoInterface.sendDriveMotorSpeed)
