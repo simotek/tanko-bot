@@ -16,6 +16,8 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
+import threading
+
 from .threadedserial import ThreadedSerial
 from .util import CallbackHelper
 from .constants import *
@@ -38,6 +40,7 @@ class ArduinoInterface:
 
     self.__serial = ThreadedSerial("/dev/ttyS2", 115200)
     self.__serial.setSerialRecieveFunction(self.onMessage)
+    self.__serial.create()
 
   def getCallbacks(self):
       return self.__callbacks
