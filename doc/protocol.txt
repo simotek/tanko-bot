@@ -1,0 +1,22 @@
+
+Odroid - arduino interface
+  * 1 per second keep alive - if not recieved halt arduino
+    * If halted send Need resume so the odroid can reset everything
+  * 1 command to set motor speeds from odroid
+    * As speed ramps up announcements back when the speed is actually set
+
+Websocket 
+  * Announce Motor %
+  * Compass rotation
+  * GPS Position
+  * UI control
+    * forward / back
+    * rotate left / right
+    * Gradul left / right 
+  * Debug Mode
+    * Manually set motor speeds
+    
+  * UI test mode, 
+    * Allows testing UI's without odroid connection
+
+Webcam feed
