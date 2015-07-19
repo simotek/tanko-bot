@@ -1,0 +1,44 @@
+  Software installs
+    * Odroid 
+      * decent GTK theme
+      * Python efl
+      * python websockets
+      * Minicom
+      * i2c tools
+    * Laptop
+      * Arduino
+      * QtWebsockets + devel
+      * Python websockets lib
+      
+      
+      
+Software todo
+  * Arduino
+    * Blink
+    * Serial Ping
+    * SPI ports as input (test with screen)
+    
+  * Odroid Server
+    * Websocket server
+    * serial thread
+    * arduino send increasing motor values on serial - relay to UI
+  * Odroid client
+    * working version of python UI
+    * Websocket client
+  * Qt Client
+    * Websockets talking to python server (Same machine to start)
+    * Very simple UI
+    * Simple control commands
+
+Hardware todo
+  * Make carry case,
+    * keyboard
+    * Odroid (Slot on and off)
+    * Power board
+    * ISP Programmer
+    
+Systems
+  * Odroid
+    * Ability to build kernel modules
+    * RTC
+    * some sort of GLES for fun
