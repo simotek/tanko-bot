@@ -21,7 +21,7 @@ import time
 import serial
 
 
-class  ThreadedSerial(threading.Thread):
+class  ThreadedWebsocket(threading.Thread):
 
   def __init__(self, port=None, baud=None):
     # First set up thread related  code
@@ -61,10 +61,6 @@ class  ThreadedSerial(threading.Thread):
     self.__dataLock.acquire()
     self.__serialRecieveFunc = RecvFunc
     self.__dataLock.release()
-
-  def setSerialConfig(self, port, baud):
-    self.__serialPort = port
-    self.__serialBaud = baud
 
   def create(self):
     # Create Serial connection - use a long timeout of 999 as its running in a thread and could
