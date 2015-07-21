@@ -1,5 +1,20 @@
 /*
-  Motor Control - Simon Lees simon@simotek.net
+Motor Control - Simon Lees simon@simotek.net
+Copyright (C) 2015 Simon Lees
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 // Pins In USE
@@ -33,7 +48,7 @@ int PIN_I2C_SCL  = 28;
 // Command Strings
 // // Incoming
 String CMD_IN_DRIVE_MOTOR_CTRL = "DMC";
-String CMD_IN_PROGRAM = "PROG";         // Sets spi lines back to high impedence for ISP 
+String CMD_IN_PROGRAM = "PROG";         // Sets spi lines back to high impedence for ISP
 
 // // Outgoing
 String CMD_OUT_READY = "READY";
@@ -44,8 +59,8 @@ String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
 
 // the setup function runs once when you press reset or power the board
-void setup() {      
-  
+void setup() {
+
   // Motor pins as outputs
   pinMode(PIN_LEFT_REV,   OUTPUT);
   pinMode(PIN_LEFT_FOR,   OUTPUT);
@@ -60,20 +75,20 @@ void setup() {
   // Wait 10 seconds before starting to give the ISP programmer a chance to kick in
   //  Will remove once the prog command is tested
   delay(10000);
-  
+
   // initialize digital pin b2-b5 as input so they can be used as spi bus
   digitalWrite(PIN_SPI_SS, LOW);
   digitalWrite(PIN_SPI_MOSI, LOW);
   digitalWrite(PIN_SPI_MISO, LOW);
   digitalWrite(PIN_SPI_SCK, LOW);
-  
+
   // SPI Pins are inputs
   pinMode(PIN_SPI_SS, INPUT);
   pinMode(PIN_SPI_MOSI, INPUT);
   pinMode(PIN_SPI_MISO, INPUT);
   pinMode(PIN_SPI_SCK, INPUT);
 
-  
+
   inputString.reserve(200);  // Reserve space for incoming command
   Serial.begin(115200);      // open the serial port at 9600 bps:
 
@@ -81,14 +96,14 @@ void setup() {
 }
 
 // the loop function runs over and over again forever
-void loop() 
+void loop()
 {
   // Decode the string when a newline arrives:
-  if (stringComplete) 
+  if (stringComplete)
   {
     // Temp debug code
     String echo = String("echo:");
-    Serial.println(echo+inputString); 
+    Serial.println(echo+inputString);
     String DecodeString = inputString;
     // clear the string early incase more comes in
     inputString = "";
@@ -99,7 +114,7 @@ void loop()
     DecodeString.trim();
     String CMDString;
     String DataString;
-    
+
     int DecodeSplit = DecodeString.indexOf(':');
     if (DecodeSplit == -1)
     {
@@ -126,7 +141,7 @@ void loop()
          LeftStr = DataString.substring(0,DataSplit);
          RightStr = DataString.substring(DataSplit+1);
        }
-       
+
        leftMotorSpeed(LeftStr.toInt());
        rightMotorSpeed(RightStr.toInt());
     }
@@ -137,11 +152,11 @@ void loop()
        digitalWrite(PIN_SPI_MOSI, HIGH);
        digitalWrite(PIN_SPI_MISO, HIGH);
        digitalWrite(PIN_SPI_SCK,  HIGH);
-       
+
        Serial.print(CMD_OUT_READY+" Program\n");
     }
   }
-  
+
 }
 
 /*
@@ -156,7 +171,7 @@ void serialEvent() {
     char inChar = (char)Serial.read();
     // add it to the inputString:
     inputString += inChar;
-    
+
     // if the incoming character is a newline, set a flag
     // so the main loop can do something about it:
     if (inChar == '\n') {
@@ -227,4 +242,3 @@ void rightMotorSpeed(int Speed)
      }
      Serial.print(CMD_OUT_DRIVE_MOTOR_RIGHT_SPEED+":"+Speed+","+Direction+"\n");
 }
-
