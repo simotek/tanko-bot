@@ -1,25 +1,20 @@
 /*
-  Blink
-  Turns on an LED on for one second, then off for one second, repeatedly.
-
-  Most Arduinos have an on-board LED you can control. On the Uno and
-  Leonardo, it is attached to digital pin 13. If you're unsure what
-  pin the on-board LED is connected to on your Arduino model, check
-  the documentation at http://www.arduino.cc
-
-  This example code is in the public domain.
-
-  modified 8 May 2014
-  by Scott Fitzgerald
+  Motor Control - Simon Lees simon@simotek.net
  */
 
 // Pins In USE
 // Motor PWM
-int PIN_LEFT_REV = 3;
-int PIN_LEFT_FOR = 5;
+int PIN_LEFT_REV = A3;
+int PIN_LEFT_FOR = A2;
 
-int PIN_RIGHT_REV = 6;
-int PIN_RIGHT_FOR = 9;
+int PIN_LEFT_SPEED = 3;
+
+
+int PIN_RIGHT_REV = A1;
+int PIN_RIGHT_FOR = A0;
+
+int PIN_RIGHT_SPEED = 5;
+
 
 // Serial Pins are only used by the Serial Driver
 int PIN_SERIAL_RX = 0;
@@ -30,6 +25,10 @@ int PIN_SPI_SS   = 10;
 int PIN_SPI_MOSI = 11;
 int PIN_SPI_MISO = 12;
 int PIN_SPI_SCK  = 13;
+
+// Note I2C Pins are Used by the ODROID
+int PIN_I2C_SDA  = 27;
+int PIN_I2C_SCL  = 28;
 
 // Command Strings
 // // Incoming
@@ -46,6 +45,17 @@ boolean stringComplete = false;  // whether the string is complete
 
 // the setup function runs once when you press reset or power the board
 void setup() {      
+  
+  // Motor pins as outputs
+  pinMode(PIN_LEFT_REV,   OUTPUT);
+  pinMode(PIN_LEFT_FOR,   OUTPUT);
+  pinMode(PIN_LEFT_SPEED, OUTPUT);
+  pinMode(PIN_RIGHT_REV,  OUTPUT);
+  pinMode(PIN_RIGHT_FOR,  OUTPUT);
+  pinMode(PIN_RIGHT_SPEED,OUTPUT);
+
+  leftMotorSpeed(0);
+  rightMotorSpeed(0);
 
   // Wait 10 seconds before starting to give the ISP programmer a chance to kick in
   //  Will remove once the prog command is tested
@@ -63,12 +73,7 @@ void setup() {
   pinMode(PIN_SPI_MISO, INPUT);
   pinMode(PIN_SPI_SCK, INPUT);
 
-  // PWM pins as outputs
-  pinMode(PIN_LEFT_REV,  OUTPUT);
-  pinMode(PIN_LEFT_FOR,  OUTPUT);
-  pinMode(PIN_RIGHT_REV, OUTPUT);
-  pinMode(PIN_RIGHT_FOR, OUTPUT);
-
+  
   inputString.reserve(200);  // Reserve space for incoming command
   Serial.begin(115200);      // open the serial port at 9600 bps:
 
@@ -82,7 +87,7 @@ void loop()
   if (stringComplete) 
   {
     // Temp debug code
-    String echo = String("echo: ");
+    String echo = String("echo:");
     Serial.println(echo+inputString); 
     String DecodeString = inputString;
     // clear the string early incase more comes in
@@ -106,30 +111,27 @@ void loop()
        DataString = DecodeString.substring(DecodeSplit+1);
     }
 
-    String dcd = String("dcd::");
-    Serial.print(dcd+CMDString+"::"+DataString+"\n");
-
-     // Main Drive Motor Control, value from -100 to 100
-     if (CMDString == CMD_IN_DRIVE_MOTOR_CTRL)
-     {
+    // Main Drive Motor Control, value from -100 to 100
+    if (CMDString == CMD_IN_DRIVE_MOTOR_CTRL)
+    {
        int DataSplit = DataString.indexOf(',');
        String LeftStr = String("0");
        String RightStr = String("0");
        if (DataSplit == -1)
        {
-          LeftStr = DecodeString;
+          LeftStr = DataString;
        }
        else
        {
-         LeftStr = DecodeString.substring(0,DataSplit);
-         RightStr = DecodeString.substring(DataSplit+1);
+         LeftStr = DataString.substring(0,DataSplit);
+         RightStr = DataString.substring(DataSplit+1);
        }
        
        leftMotorSpeed(LeftStr.toInt());
        rightMotorSpeed(RightStr.toInt());
-     }
-     else if (CMDString == CMD_IN_PROGRAM)
-     {
+    }
+    else if (CMDString == CMD_IN_PROGRAM)
+    {
        // SPI Pins back to High for ISP
        digitalWrite(PIN_SPI_SS,   HIGH);
        digitalWrite(PIN_SPI_MOSI, HIGH);
@@ -137,7 +139,7 @@ void loop()
        digitalWrite(PIN_SPI_SCK,  HIGH);
        
        Serial.print(CMD_OUT_READY+" Program\n");
-     }
+    }
   }
   
 }
@@ -154,6 +156,7 @@ void serialEvent() {
     char inChar = (char)Serial.read();
     // add it to the inputString:
     inputString += inChar;
+    
     // if the incoming character is a newline, set a flag
     // so the main loop can do something about it:
     if (inChar == '\n') {
@@ -165,45 +168,63 @@ void serialEvent() {
 // Sets left Motor Speed -100 to 100
 void leftMotorSpeed(int Speed)
 {
-    if (Speed == 0)
+   char Direction = 'N';
+   if (Speed == 0 ||
+       Speed > 100 ||
+       Speed < -100)
    {
-     analogWrite(PIN_LEFT_REV, 0);
-     analogWrite(PIN_LEFT_FOR, 0);
+     Speed = 0;
+     digitalWrite(PIN_LEFT_FOR, LOW);
+     digitalWrite(PIN_LEFT_REV, LOW);
+     analogWrite(PIN_LEFT_SPEED,0);
    }
    else if (Speed < 0)
    {
+     Direction = 'R';
      Speed = Speed*-1;
      // Convert from 0-100 to 0-255
-     analogWrite(PIN_LEFT_FOR, 0);
-     analogWrite(PIN_LEFT_REV, (Speed/100)*255);
+     digitalWrite(PIN_LEFT_FOR, LOW);
+     digitalWrite(PIN_LEFT_REV, HIGH);
+     analogWrite(PIN_LEFT_SPEED,(Speed*255)/100);
    }
    else
    {
-     analogWrite(PIN_LEFT_REV, 0);
-     analogWrite(PIN_LEFT_FOR, (Speed/100)*255);
+     Direction = 'F';
+     digitalWrite(PIN_LEFT_FOR, HIGH);
+     digitalWrite(PIN_LEFT_REV, LOW);
+     analogWrite(PIN_LEFT_SPEED,(Speed*255)/100);
    }
-   Serial.print(CMD_OUT_DRIVE_MOTOR_LEFT_SPEED+":"+Speed+"\n");
+   Serial.print(CMD_OUT_DRIVE_MOTOR_LEFT_SPEED+":"+Speed+","+Direction+"\n");
 }
 
 void rightMotorSpeed(int Speed)
   {
-    if (Speed == 0)
+    char Direction = 'N';
+    if (Speed == 0 ||
+       Speed > 100 ||
+       Speed < -100)
      {
-       analogWrite(PIN_RIGHT_REV, 0);
-       analogWrite(PIN_RIGHT_FOR, 0);
+       Speed = 0;
+       digitalWrite(PIN_RIGHT_FOR, LOW);
+       digitalWrite(PIN_RIGHT_REV, LOW);
+       analogWrite(PIN_RIGHT_SPEED,0);
      }
      else if (Speed < 0)
      {
        Speed = Speed*-1;
+       Direction = 'R';
        // Convert from 0-100 to 0-255
-       analogWrite(PIN_RIGHT_FOR, 0);
-       analogWrite(PIN_RIGHT_REV, (Speed/100)*255);
+       digitalWrite(PIN_RIGHT_FOR, LOW);
+       digitalWrite(PIN_RIGHT_REV, HIGH);
+       analogWrite(PIN_RIGHT_SPEED,(Speed*255)/100);
      }
      else
      {
-       analogWrite(PIN_RIGHT_REV, 0);
-       analogWrite(PIN_RIGHT_FOR, (Speed/100)*255);
+       Direction = 'F';
+       digitalWrite(PIN_RIGHT_FOR, HIGH);
+       digitalWrite(PIN_RIGHT_REV, LOW);
+       analogWrite(PIN_RIGHT_SPEED,(Speed*255)/100);
      }
-     Serial.print(CMD_OUT_DRIVE_MOTOR_RIGHT_SPEED+":"+Speed+"\n");
+     Serial.print(CMD_OUT_DRIVE_MOTOR_RIGHT_SPEED+":"+Speed+","+Direction+"\n");
 }
 
