@@ -64,8 +64,8 @@ void setup() {
   // Motor pins as outputs
   pinMode(PIN_LEFT_REV,   OUTPUT);
   pinMode(PIN_LEFT_FOR,   OUTPUT);
-  pinMode(PIN_LEFT_SPEED, OUTPUT);
   pinMode(PIN_RIGHT_REV,  OUTPUT);
+  pinMode(PIN_LEFT_SPEED, OUTPUT);
   pinMode(PIN_RIGHT_FOR,  OUTPUT);
   pinMode(PIN_RIGHT_SPEED,OUTPUT);
 
@@ -74,7 +74,7 @@ void setup() {
 
   // Wait 10 seconds before starting to give the ISP programmer a chance to kick in
   //  Will remove once the prog command is tested
-  delay(10000);
+  delay(2000);
 
   // initialize digital pin b2-b5 as input so they can be used as spi bus
   digitalWrite(PIN_SPI_SS, LOW);
