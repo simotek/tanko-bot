@@ -18,10 +18,12 @@
 
 
 # This class uses asyncio from a different thread to ensure it doesn't need to interupt
-#  or be involved in other event loops such as the efl or pyqt ones depending 
+#  or be involved in other event loops such as the efl or pyqt ones depending
 #  on which other libs are being used
 
 import threading
+import asyncio
+import websockets
 
 class  WebsocketClient(threading.Thread):
 
@@ -33,10 +35,10 @@ class  WebsocketClient(threading.Thread):
     self.__finished =  True
 
     # now set up serial related code
-    self.url = url
+    self.__url = url
     self.__recieveFunc = None
     self.__socket = None
-    self.__sendQueue[]
+    self.__sendQueue = []
 
   def __del__(self):
     if self.__stopRunning:
@@ -67,27 +69,20 @@ class  WebsocketClient(threading.Thread):
 
   # writes data
   def write(self, data):
-    self.__dataLock.acquire()
-    self.__sendQueue.append(data)
-    self.__dataLock.release()
-
-  # overloads the theads run class to provide non blocking Seral responses
-  # @note create should be called before start
-  def run(self):
-
-    self.__dataLock.acquire()
-    self.__socket =  websockets.connect('ws://localhost:8765/')
-    self.__dataLock.release()
-    
-    asyncio.get_event_loop().run_until_complete(__process())
-
+    #self.__dataLock.acquire()
+    #self.__sendQueue.append(data)
+    #self.__dataLock.release()
+    print ("Sending:"+data)
+    yield from wsock.send(data)
+    print ("Sent:"+data)
 
   def __process(self):
+    self.__socket = yield from websockets.connect(self.__url)
     while True:
       # take out lock for access to stop running
       # Use a non blocking lock, there is no harm in looping more times here while waiting for
       # something else to unlock
-      aquired = yield from self.__dataLock.acquire()
+      aquired = self.__dataLock.acquire()
       if aquired:
         # if its time to stop running stop
         if self.__stopRunning == True:
@@ -99,26 +94,36 @@ class  WebsocketClient(threading.Thread):
         self.__dataLock.release()
 
       # this code blocks until it recieves a new line char
-      aquired = yield from self.__dataLock.acquire()
-      if aquired:
-        data = websocket.recv()
+      data = yield from self.__socket.recv()
+      print("Recieved: "+data)
+      # check whatever you need to check here
+      if self.__recieveFunc is not None:
+        # Call the function passing it the line as a parami
+        self.__recieveFunc(data)
 
-        # check whatever you need to check here
-        if self.__recieveFunc is not None:
-          # Call the function passing it the line as a parami
-          self.__recieveFunc(data)
-          
-        self.__dataLock.release()
-      
-      
-      aquired = yield from self.__dataLock.acquire()
-      if aquired:
-        for data in self.__sendQueue:
-          websocket.send(data) 
-        
-        self.__dataLock.release()
+      sendList = []
+
+      #aquired = self.__dataLock.acquire()
+      #if aquired:
+    #    sendList = self.__sendQueue
+    #    self.__sendQueue.clear()
+    #    self.__dataLock.release()
+
+    #  for data in sendList:
+    #    print ("Sending "+data)
+    #    yield from wsock.send(data)
+
 
   def stop(self):
     self.__dataLock.acquire()
     self.__stopRunning = True
     self.__dataLock.release()
+
+  # overloads the theads run class to provide non blocking Seral responses
+  # @note create should be called before start
+  def run(self):
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    asyncio.get_event_loop().run_until_complete(self.__process())
