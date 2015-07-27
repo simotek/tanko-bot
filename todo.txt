@@ -13,10 +13,10 @@
       
       
 Software todo
-  * Arduino
-    * Blink
-    * Serial Ping
-    * SPI ports as input (test with screen)
+ ~ Arduino
+    ~ Blink
+    ~ Serial Ping
+    ~ SPI ports as input (test with screen)
     
   * Odroid Server
     * Websocket server
@@ -35,10 +35,27 @@ Hardware todo
     * keyboard
     * Odroid (Slot on and off)
     * Power board
-    * ISP Programmer
+    ~ ISP Programmer
     
 Systems
   * Odroid
     * Ability to build kernel modules
     * RTC
     * some sort of GLES for fun
+    
+    
+    
+ 
+
+-- Demo Wishlist --
+  * Mount hardware
+  * Network server / client test
+  * Speed command for client server
+  * Simple Ui client (Laptop / Phone / Web)
+  * Display a Image on the LCD
+    * Ui on LCD (only if port is simple)
+  * Make webcam mount move
+  * stream webcam
+  
+-- Other for robot project --
+  * Get RTC running (build driver)
