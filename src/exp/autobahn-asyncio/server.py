@@ -49,7 +49,7 @@ class MyServerProtocol(WebSocketServerProtocol):
     def onClose(self, wasClean, code, reason):
         print("WebSocket connection closed: {0}".format(reason))
 
-class  UiServer(threading.Thread):
+class  ThreadedWebSocketServer(threading.Thread):
 
   def __init__(self):
     # First set up thread related  code
@@ -83,6 +83,6 @@ if __name__ == '__main__':
         # Trollius >= 0.3 was renamed
         import trollius as asyncio
 
-    server = UiServer()
+    server = ThreadedWebSocketServer()
 
     server.start()
