@@ -30,17 +30,24 @@ from autobahn.asyncio.websocket import WebSocketClientProtocol, \
 import threading
 import time
 
-clientMessageQueueGbl = []
+clientRecvQueueGbl = []
+clientSendQueueGbl = []
 
 class MyClientProtocol(WebSocketClientProtocol):
+  
+    def __init__(self, *args):
+        WebSocketClientProtocol.__init__(self, *args)
 
     def onConnect(self, response):
         print("Server connected: {0}".format(response.peer))
+        
+    def send(self, data):
+        self.sendMessage(data.encode('utf8'))
 
     def onOpen(self):
         print("WebSocket connection open.")
 
-        clientMessageQueueGbl.append("Connect")
+        clientRecvQueueGbl.append("Connect")
 
         def hello():
             self.sendMessage(u"Hello, world!".encode('utf8'))
@@ -49,18 +56,33 @@ class MyClientProtocol(WebSocketClientProtocol):
 
         # start sending messages every second ..
         hello()
+        
+        def process():
+            global clientSendQueueGbl
+            
+            if clientSendQueueGbl:
+              for data in clientSendQueueGbl:
+                self.sendMessage(data.encode('utf8'))
+                print("Net Send: "+data)
+
+
+              clientSendQueueGbl = []
+            
+            self.factory.loop.call_later(0.001, process)
+            
+        process()
 
     def onMessage(self, payload, isBinary):
         if isBinary:
             print("Binary message received: {0} bytes".format(len(payload)))
         else:
             print("Text message received: {0}".format(payload.decode('utf8')))
-            clientMessageQueueGbl.append(payload.decode('utf8'))
+            clientRecvQueueGbl.append(payload.decode('utf8'))
 
 
     def onClose(self, wasClean, code, reason):
         print("WebSocket connection closed: {0}".format(reason))
-        clientMessageQueueGbl.append("Disconnect")
+        clientRecvQueueGbl.append("Disconnect")
 
 
 
@@ -71,14 +93,19 @@ class  BotWebSocketClient(threading.Thread):
     threading.Thread.__init__(self)
 
     self.__loop = asyncio.get_event_loop()
+    
+    self.__factory = WebSocketClientFactory("ws://localhost:9000", debug=False)
+    
+  def send(self, data):
+    self.__loop.call_soon_threadsafe(self.__factory.protocol.send, data)
 
   def run(self):
       asyncio.set_event_loop(self.__loop)
 
-      factory = WebSocketClientFactory("ws://localhost:9000", debug=False)
-      factory.protocol = MyClientProtocol
+      
+      self.__factory.protocol = MyClientProtocol
 
-      coro = self.__loop.create_connection(factory, '127.0.0.1', 9000)
+      coro = self.__loop.create_connection(self.__factory, '127.0.0.1', 9000)
       self.__loop.run_until_complete(coro)
       self.__loop.run_forever()
       self.__loop.close()
@@ -98,9 +125,11 @@ if __name__ == '__main__':
     print ("Threads started")
 
     while True:
-        if clientMessageQueueGbl:
-            for data in clientMessageQueueGbl:
-                print ("MSG: " + data)
+        if clientRecvQueueGbl:
+            for data in clientRecvQueueGbl:
+              print ("MSG: " + data)
+              if not "Sending: " in data:
+                clientSendQueueGbl.append("Sending: " + data)
 
-            clientMessageQueueGbl = []
+            clientRecvQueueGbl = []
         time.sleep(0.1)
