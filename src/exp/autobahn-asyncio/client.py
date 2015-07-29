@@ -30,86 +30,119 @@ from autobahn.asyncio.websocket import WebSocketClientProtocol, \
 import threading
 import time
 
-clientRecvQueueGbl = []
-clientSendQueueGbl = []
+class CallbackHelper:
+    def __init__(self):
+        self.__funcs = []
 
-class MyClientProtocol(WebSocketClientProtocol):
-  
+    def register(self, funct):
+        self.__funcs.append(funct)
+
+    def unregister(self, funct):
+        self.__funcs.remove(funct)
+
+    def invoke(self, *args, **kwargs):
+        for func in self.__funcs:
+            func(args, kwargs)
+
+class ClientCallbacks:
+    def __init__(self):
+        self.connect = CallbackHelper
+        self.disconnect = CallbackHelper
+        self.onMessage = CallbackHelper
+
+    def addConnect(self, funct):
+        self.connect.register(funct)
+
+class ThreadedClientProtocol(WebSocketClientProtocol):
+
     def __init__(self, *args):
         WebSocketClientProtocol.__init__(self, *args)
 
     def onConnect(self, response):
         print("Server connected: {0}".format(response.peer))
-        
+
     def send(self, data):
         self.sendMessage(data.encode('utf8'))
 
     def onOpen(self):
         print("WebSocket connection open.")
+        self.factory.register(self)
 
-        clientRecvQueueGbl.append("Connect")
-
-        def hello():
-            self.sendMessage(u"Hello, world!".encode('utf8'))
-            self.sendMessage(b"\x00\x01\x03\x04", isBinary=True)
-            self.factory.loop.call_later(1, hello)
-
-        # start sending messages every second ..
-        hello()
-        
-        def process():
-            global clientSendQueueGbl
-            
-            if clientSendQueueGbl:
-              for data in clientSendQueueGbl:
-                self.sendMessage(data.encode('utf8'))
-                print("Net Send: "+data)
-
-
-              clientSendQueueGbl = []
-            
-            self.factory.loop.call_later(0.001, process)
-            
-        process()
 
     def onMessage(self, payload, isBinary):
         if isBinary:
             print("Binary message received: {0} bytes".format(len(payload)))
         else:
             print("Text message received: {0}".format(payload.decode('utf8')))
-            clientRecvQueueGbl.append(payload.decode('utf8'))
+            self.factory.onMessage(payload.decode('utf8'))
 
+
+    def connectionLost(self, reason):
+      WebSocketServerProtocol.connectionLost(self, reason)
+      self.factory.unregister(self)
 
     def onClose(self, wasClean, code, reason):
         print("WebSocket connection closed: {0}".format(reason))
-        clientRecvQueueGbl.append("Disconnect")
 
+class ThreadedClientFactory(WebSocketClientFactory):
+    def __init__(self, url, callbacks, debug=False, debugCodePaths=False):
+        WebSocketClientFactory.__init__(self, url, debug=debug, debugCodePaths=debugCodePaths)
+        self.__clients = []
+        self.__callbacks = callbacks
 
+    def register(self, client):
+        self.__clients.append(client)
+        self.__callbacks.onConnect.invoke()
 
-class  BotWebSocketClient(threading.Thread):
+    def unregister(self, client):
+        self.__clients.remove(client)
+        self.__callbacks.onDisconnect.invoke()
 
-  def __init__(self):
+    def onMessage(self, message):
+        print("On Message: "+ message)
+        self.__callbacks.onMessage(message)
+
+    def sendMessage(self, message):
+        for c in self.__clients:
+            self.loop.call_soon_threadsafe(c.sendMessage, message.encode('utf8'))
+
+class  ThreadedWebSocketClient(threading.Thread):
+
+  def __init__(self, callbacks):
     # First set up thread related  code
     threading.Thread.__init__(self)
 
     self.__loop = asyncio.get_event_loop()
-    
-    self.__factory = WebSocketClientFactory("ws://localhost:9000", debug=False)
-    
-  def send(self, data):
-    self.__loop.call_soon_threadsafe(self.__factory.protocol.send, data)
+
+    self.__factory = ThreadedClientFactory("ws://localhost:9000", callbacks, debug=False)
+
+  def sendMessage(self, data):
+    self.__factory.sendMessage(data)
 
   def run(self):
       asyncio.set_event_loop(self.__loop)
 
-      
-      self.__factory.protocol = MyClientProtocol
+
+      self.__factory.protocol = ThreadedClientProtocol
 
       coro = self.__loop.create_connection(self.__factory, '127.0.0.1', 9000)
       self.__loop.run_until_complete(coro)
       self.__loop.run_forever()
       self.__loop.close()
 
+
+class Printer:
+    def __init__(self):
+        print ("create")
+
+    def cn():
+        print ("Connected CB")
+
+    def dn ():
+        print ("Disconnected CB")
+
+    def m(Message):
+        print ("Msg Recieved: "+ Message)
 
 if __name__ == '__main__':
 
@@ -119,17 +152,24 @@ if __name__ == '__main__':
         # Trollius >= 0.3 was renamed
         import trollius as asyncio
 
-    client = BotWebSocketClient()
+
+    pnt = Printer
+
+    callbacks = ClientCallbacks
+
+    fn = pnt.cn
+    callbacks.addConnect(fn)
+    callbacks.disconnect.register(pnt.dn)
+    callbacks.message.register(pnt.m)
+
+    client = ThreadedWebSocketClient(callbacks)
     client.start()
 
     print ("Threads started")
 
-    while True:
-        if clientRecvQueueGbl:
-            for data in clientRecvQueueGbl:
-              print ("MSG: " + data)
-              if not "Sending: " in data:
-                clientSendQueueGbl.append("Sending: " + data)
+    time.sleep(4)
 
-            clientRecvQueueGbl = []
-        time.sleep(0.1)
+    while True:
+        client.sendMessage("Ping")
+
+        time.sleep(1)
