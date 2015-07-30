@@ -29,6 +29,7 @@ from autobahn.asyncio.websocket import WebSocketClientProtocol, \
 
 import threading
 import time
+from urllib.parse import urlparse
 
 class CallbackHelper:
     def __init__(self):
@@ -112,13 +113,16 @@ class ThreadedClientFactory(WebSocketClientFactory):
 
 class  ThreadedWebSocketClient(threading.Thread):
 
-  def __init__(self, callbacks):
+  def __init__(self, url, callbacks):
     # First set up thread related  code
     threading.Thread.__init__(self)
 
+    self.__url = url
+
     self.__loop = asyncio.get_event_loop()
 
-    self.__factory = ThreadedClientFactory("ws://localhost:9000", callbacks, debug=False)
+    self.__factory = ThreadedClientFactory(self.__url, callbacks, debug=False)
+    self.__factory.protocol = ThreadedClientProtocol
 
   def sendMessage(self, data):
     self.__factory.sendMessage(data)
@@ -127,9 +131,13 @@ class  ThreadedWebSocketClient(threading.Thread):
       asyncio.set_event_loop(self.__loop)
 
 
-      self.__factory.protocol = ThreadedClientProtocol
 
-      coro = self.__loop.create_connection(self.__factory, '127.0.0.1', 9000)
+      parsed = urlparse(self.__url)
+
+      ipaddr = parsed.netloc.replace("ws://","").split(':', 1)[0]
+      print ("Connecting to: "+ipaddr+"-"+str(parsed.port))
+
+      coro = self.__loop.create_connection(self.__factory, ipaddr, parsed.port)
       self.__loop.run_until_complete(coro)
       self.__loop.run_forever()
       self.__loop.close()
@@ -166,7 +174,7 @@ if __name__ == '__main__':
     callbacks.disconnect.register(pnt.dn)
     callbacks.message.register(pnt.m)
 
-    client = ThreadedWebSocketClient(callbacks)
+    client = ThreadedWebSocketClient("ws://localhost:9000", callbacks)
     client.start()
 
     print ("Threads started")
