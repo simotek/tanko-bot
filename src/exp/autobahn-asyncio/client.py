@@ -42,16 +42,20 @@ class CallbackHelper:
 
     def invoke(self, *args, **kwargs):
         for func in self.__funcs:
+          if args and kwargs:
             func(args, kwargs)
+          elif args:
+            func(args)
+          elif kwargs:
+            func(kwargs)
+          else:
+            func()
 
 class ClientCallbacks:
     def __init__(self):
-        self.connect = CallbackHelper
-        self.disconnect = CallbackHelper
-        self.onMessage = CallbackHelper
-
-    def addConnect(self, funct):
-        self.connect.register(funct)
+        self.connect = CallbackHelper()
+        self.disconnect = CallbackHelper()
+        self.message = CallbackHelper()
 
 class ThreadedClientProtocol(WebSocketClientProtocol):
 
@@ -92,15 +96,15 @@ class ThreadedClientFactory(WebSocketClientFactory):
 
     def register(self, client):
         self.__clients.append(client)
-        self.__callbacks.onConnect.invoke()
+        self.__callbacks.connect.invoke()
 
     def unregister(self, client):
         self.__clients.remove(client)
-        self.__callbacks.onDisconnect.invoke()
+        self.__callbacks.disconnect.invoke()
 
     def onMessage(self, message):
-        print("On Message: "+ message)
-        self.__callbacks.onMessage(message)
+        print("On Message: "+ str(message))
+        self.__callbacks.message.invoke(message)
 
     def sendMessage(self, message):
         for c in self.__clients:
@@ -142,7 +146,7 @@ class Printer:
         print ("Disconnected CB")
 
     def m(Message):
-        print ("Msg Recieved: "+ Message)
+        print ("Msg Recieved: "+ str(Message))
 
 if __name__ == '__main__':
 
@@ -155,10 +159,10 @@ if __name__ == '__main__':
 
     pnt = Printer
 
-    callbacks = ClientCallbacks
+    callbacks = ClientCallbacks()
 
     fn = pnt.cn
-    callbacks.addConnect(fn)
+    callbacks.connect.register(fn)
     callbacks.disconnect.register(pnt.dn)
     callbacks.message.register(pnt.m)
 
