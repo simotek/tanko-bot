@@ -1,129 +1,125 @@
-
-# Websocket Client - Simon Lees simon@simotek.net
-# Copyright (C) 2015 Simon Lees
+# Based off a test app with the following license
+###############################################################################
 #
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
+# The MIT License (MIT)
 #
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
+# Copyright (c) Tavendo GmbH
 #
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+###############################################################################
 
+from autobahn.asyncio.websocket import WebSocketClientProtocol, \
+    WebSocketClientFactory
 
-# This class uses asyncio from a different thread to ensure it doesn't need to interupt
-#  or be involved in other event loops such as the efl or pyqt ones depending
-#  on which other libs are being used
+import asyncio
+
 
 import threading
-import asyncio
-import websockets
+import time
+from urllib.parse import urlparse
+from .util import CallbackHelper
 
-class  WebsocketClient(threading.Thread):
+class ClientCallbacks:
+    def __init__(self):
+        self.connect = CallbackHelper()
+        self.disconnect = CallbackHelper()
+        self.message = CallbackHelper()
 
-  def __init__(self, url):
+class ThreadedClientProtocol(WebSocketClientProtocol):
+
+    def __init__(self, *args):
+        WebSocketClientProtocol.__init__(self, *args)
+
+    def onConnect(self, response):
+        print("Server connected: {0}".format(response.peer))
+
+    def send(self, data):
+        self.sendMessage(data.encode('utf8'))
+
+    def onOpen(self):
+        print("WebSocket connection open.")
+        self.factory.register(self)
+
+
+    def onMessage(self, payload, isBinary):
+        if isBinary:
+            print("Binary message received: {0} bytes".format(len(payload)))
+        else:
+            print("Text message received: {0}".format(payload.decode('utf8')))
+            self.factory.onMessage(payload.decode('utf8'))
+
+
+    def connectionLost(self, reason):
+      WebSocketServerProtocol.connectionLost(self, reason)
+      self.factory.unregister(self)
+
+    def onClose(self, wasClean, code, reason):
+        print("WebSocket connection closed: {0}".format(reason))
+
+class ThreadedClientFactory(WebSocketClientFactory):
+    def __init__(self, url, callbacks, debug=False, debugCodePaths=False):
+        WebSocketClientFactory.__init__(self, url, debug=debug, debugCodePaths=debugCodePaths)
+        self.__clients = []
+        self.__callbacks = callbacks
+
+    def register(self, client):
+        self.__clients.append(client)
+        self.__callbacks.connect.invoke()
+
+    def unregister(self, client):
+        self.__clients.remove(client)
+        self.__callbacks.disconnect.invoke()
+
+    def onMessage(self, message):
+        print("On Message: "+ str(message))
+        self.__callbacks.message.invoke(message)
+
+    def sendMessage(self, message):
+        for c in self.__clients:
+            self.loop.call_soon_threadsafe(c.sendMessage, message.encode('utf8'))
+
+class  ThreadedWebSocketClient(threading.Thread):
+
+  def __init__(self, url, callbacks):
     # First set up thread related  code
     threading.Thread.__init__(self)
-    self.__dataLock = threading.RLock()
-    self.__stopRunning = False
-    self.__finished =  True
 
-    # now set up serial related code
     self.__url = url
-    self.__recieveFunc = None
-    self.__socket = None
-    self.__sendQueue = []
 
-  def __del__(self):
-    if self.__stopRunning:
-      return
-    self.__dataLock.acquire()
-    self.__stopRunning = True
-    self.__dataLock.release()
+    self.__loop = asyncio.get_event_loop()
 
-    waiting = True
+    self.__factory = ThreadedClientFactory(self.__url, callbacks, debug=False)
+    self.__factory.protocol = ThreadedClientProtocol
 
-    while waiting:
-      if self.__dataLock.acquire(False):
-        if self.__finished == True:
-          waiting = False
+  def sendMessage(self, data):
+    self.__factory.sendMessage(data)
 
-        self.__dataLock.release()
-      else:
-        # if can't get a lock wait for it
-        time.sleep(0.2)
-
-  # This method takes a function as a paramater,
-  # that function should take 1 paramater which will be passed a line of data
-  def setRecieveFunction(self, RecvFunc):
-    self.__dataLock.acquire()
-    self.__recieveFunc = RecvFunc
-    self.__dataLock.release()
-
-
-  # writes data
-  def write(self, data):
-    #self.__dataLock.acquire()
-    #self.__sendQueue.append(data)
-    #self.__dataLock.release()
-    print ("Sending:"+data)
-    yield from wsock.send(data)
-    print ("Sent:"+data)
-
-  def __process(self):
-    self.__socket = yield from websockets.connect(self.__url)
-    while True:
-      # take out lock for access to stop running
-      # Use a non blocking lock, there is no harm in looping more times here while waiting for
-      # something else to unlock
-      aquired = self.__dataLock.acquire()
-      if aquired:
-        # if its time to stop running stop
-        if self.__stopRunning == True:
-          ## do cleanup here
-
-          self.__dataLock.release()
-          return
-
-        self.__dataLock.release()
-
-      # this code blocks until it recieves a new line char
-      data = yield from self.__socket.recv()
-      print("Recieved: "+data)
-      # check whatever you need to check here
-      if self.__recieveFunc is not None:
-        # Call the function passing it the line as a parami
-        self.__recieveFunc(data)
-
-      sendList = []
-
-      #aquired = self.__dataLock.acquire()
-      #if aquired:
-    #    sendList = self.__sendQueue
-    #    self.__sendQueue.clear()
-    #    self.__dataLock.release()
-
-    #  for data in sendList:
-    #    print ("Sending "+data)
-    #    yield from wsock.send(data)
-
-
-  def stop(self):
-    self.__dataLock.acquire()
-    self.__stopRunning = True
-    self.__dataLock.release()
-
-  # overloads the theads run class to provide non blocking Seral responses
-  # @note create should be called before start
   def run(self):
+      asyncio.set_event_loop(self.__loop)
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+      parsed = urlparse(self.__url)
 
-    asyncio.get_event_loop().run_until_complete(self.__process())
+      ipaddr = parsed.netloc.replace("ws://","").split(':', 1)[0]
+      print ("Connecting to: "+ipaddr+"-"+str(parsed.port))
+
+      coro = self.__loop.create_connection(self.__factory, ipaddr, parsed.port)
+      self.__loop.run_until_complete(coro)
+      self.__loop.run_forever()
+      self.__loop.close()
