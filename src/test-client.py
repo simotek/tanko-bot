@@ -1,5 +1,5 @@
 
-# Constants - Simon Lees simon@simotek.net
+# test client - Simon Lees simon@simotek.net
 # Copyright (C) 2015 Simon Lees
 #
 # This library is free software; you can redistribute it and/or
@@ -16,13 +16,33 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-discoveryPort = 8701
-uiPort = 8702
+from PyLibs.uiclient import UiClient, UiClientCallbacks
 
+import time
 
-# Comands
-CONST_SERVER_COMMAND_MOTOR_DRIVE = "DMC"
+if __name__ == '__main__':
+  
+  clientCallbacks = UiClientCallbacks()
 
+  uiClient = UiClient(clientCallbacks)
 
-CONST_SERVER_ANN_DRIVE_MOTOR_LEFT_SPEED = "DMLS";
-CONST_SERVER_ANN_DRIVE_MOTOR_RIGHT_SPEED = "DMRS";
+  count = 0
+
+  # Main app event loop
+  while True:
+    uiClient.processMessages()
+    time.sleep(0.01)
+    
+    count = count+1
+    
+    if count > 2000:
+      count = 0
+      
+      uiClient.sendDriveMotorSpeed(0,0)
+      
+    elif count == 500:
+      uiClient.sendDriveMotorSpeed(60,60)
+    elif count == 1000:
+      uiClient.sendDriveMotorSpeed(-60,-60)    
+    elif count == 1500:
+      uiClient.sendDriveMotorSpeed(60,-60)
