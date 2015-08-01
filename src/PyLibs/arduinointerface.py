@@ -1,5 +1,5 @@
 
-# UiServer - Simon Lees simon@simotek.net
+# Arduino Interface - Simon Lees simon@simotek.net
 # Copyright (C) 2015 Simon Lees
 #
 # This library is free software; you can redistribute it and/or
@@ -16,57 +16,39 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-import asyncio
-import threading
-import time
-
-from .websocketserver import ThreadedWebSocketServer, ServerCallbacks
-from .discoveryserver import DiscoveryServer
-
-from .constants import *
+from .threaddedserial import ThreadedSerial
 from .util import CallbackHelper
+from .constants import *
 
-
-class UiServerNetworkException(Exception):
+class ArduinoParsingException(Exception):
     pass
 
 
-class UiServerCallbacks:
+class ArduinoInterfaceCallbacks:
     def __init__(self):
-        self.connect = CallbackHelper()
-        self.disconnect = CallbackHelper()
-        self.sendDriveMotor = CallbackHelper()
+        self.annLeftDriveMotor = CallbackHelper()
+        self.annRightDriveMotor = CallbackHelper()
 
-class UiServer:
+class ArduinoInterface:
   def __init__(self, callbacks):
     self.__dataLock = threading.RLock()
     self.__messageQueue = []
 
-    self.__uiServerCallbacks = callbacks
+    self.__callbacks = callbacks
 
-    serverCallbacks = ServerCallbacks()
-
-    serverCallbacks.connect = self.__uiServerCallbacks.connect
-    serverCallbacks.disconnect = self.__uiServerCallbacks.disconnect
-    serverCallbacks.message.register(self.onMessage)
-
-    discovery = DiscoveryServer()
-    discovery.start()
-
-    self.__server = ThreadedWebSocketServer("ws://127.0.0.1:"+str(uiPort), serverCallbacks)
-
-    self.__server.start()
+    self.__serial = ThreadedSerial("/dev/ttyS2", 115200)
+    self.__serial.setSerialRecieveFunction(self.onMessage)
 
   def getCallbacks(self):
-      return self.__uiServerCallbacks
+      return self.__callbacks
 
   def setCallbacks(self, callbacks):
-      self.__uiServerCallbacks = callbacks
+      self.__callbacks = callbacks
 
   # Adds message to queue for processing
   def onMessage(self, message):
     self.__dataLock.acquire()
-    self.__messageQueue.append(message[0])
+    self.__messageQueue.append(message)
     self.__dataLock.release()
 
   # Processes all messages on queue and fires there callbacks
@@ -80,7 +62,7 @@ class UiServer:
       #Unlock mutex to avoid holding while signals are triggered
       self.__dataLock.release()
 
-      self.decodeMessage(message)
+      self.decodeMessage(message[0])
 
       #relock mutex for next check of the queue
       self.__dataLock.acquire()
@@ -99,25 +81,15 @@ class UiServer:
       data = split[1]
 
     if len(split) > 2:
-      raise UiServerNetworkException("Invalid Message, too many commands (:)")
+      raise UiClientNetworkException("Invalid Message, too many commands (:)")
 
 
-    if (command == CONST_SERVER_COMMAND_MOTOR_DRIVE):
-      dataSplit = data.split(',')
-
-      if len(dataSplit) != 2:
-        raise UiServerNetworkException("DMC Command must have 2 params")
-
-      left = dataSplit[0]
-      right = dataSplit[1]
-
-      print("Drive motor")
-      self.__uiServerCallbacks.sendDriveMotor.invoke(left, right)
+    if (command == CONST_SERVER_ANN_DRIVE_MOTOR_LEFT_SPEED):
+      self.__callbacks.annLeftDriveMotor.invoke(data)
+    elif (command == CONST_SERVER_ANN_DRIVE_MOTOR_RIGHT_SPEED):
+      self.__callbacks.annRightDriveMotor.invoke(data)
     else:
-      print ("Unknown command:"+command)
+      print("Unknown command:"+command)
 
-  def announceLeftMotorSpeed(self, args):
-    self.__server.broadcastMessage(CONST_SERVER_ANN_DRIVE_MOTOR_LEFT_SPEED+":"+args[0])
-
-  def announceRightMotorSpeed(self, args):
-    self.__server.broadcastMessage(CONST_SERVER_ANN_DRIVE_MOTOR_RIGHT_SPEED+":"+args[0])
+  def sendDriveMotorSpeed(self, args):
+    self.__serial.write(CONST_SERVER_COMMAND_MOTOR_DRIVE+":"+args[0]+","+args[1])

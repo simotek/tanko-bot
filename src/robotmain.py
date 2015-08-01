@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 from PyLibs.uiserver import UiServer, UiServerCallbacks
+from PyLibs.arduinointerface import ArduinoInterface, ArduinoInterfaceCallbacks
 
 import argparse
 import time
@@ -26,25 +27,35 @@ uiServer = None
 # only used when serial is stubbed out
 def onDriveMotor(args):
   print("On DriveMotor")
-  
+
   uiServer.announceLeftMotorSpeed(args[0])
   uiServer.announceRightMotorSpeed(args[1])
 
 if __name__ == '__main__':
-  
+
   parser = argparse.ArgumentParser("Main Robot control app")
   #parser.add_argument("-s", "--no-serial", type=str, required=False, help="Stub out serial")
   parser.add_argument('--no-serial', dest='noserial', action='store_true')
-  
+
   args = parser.parse_args()
-  
+
   serverCallbacks = UiServerCallbacks()
+  arduinoCallbacks = ArduinoCallbacks()
+
+  uiServer = UiServer(serverCallbacks)
 
   # hook up stub callbacks
   if args.noserial:
     serverCallbacks.sendDriveMotor.register(onDriveMotor)
+  else
+    arduinoCallbacks.annLeftDriveMotor(uiServer.announceLeftMotorSpeed)
+    arduinoCallbacks.annRightDriveMotor(uiServer.announceRightMotorSpeed)
+    arduinoInterface = arduinoInterface(arduinoCallbacks)
 
-  uiServer = UiServer(serverCallbacks)
+    servercallbacks = uiServer.getCallbacks()
+    servercallbacks.sendDriveMotor.register(arduinoInterface.sendDriveMotorSpeed)
+    uiServer.setCallbacks(servercallbacks)
+
 
 
   # Main app event loop
