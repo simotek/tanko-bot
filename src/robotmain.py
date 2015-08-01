@@ -40,16 +40,16 @@ if __name__ == '__main__':
   args = parser.parse_args()
 
   serverCallbacks = UiServerCallbacks()
-  arduinoCallbacks = ArduinoCallbacks()
+  arduinoCallbacks = ArduinoInterfaceCallbacks()
 
   uiServer = UiServer(serverCallbacks)
 
   # hook up stub callbacks
   if args.noserial:
     serverCallbacks.sendDriveMotor.register(onDriveMotor)
-  else
-    arduinoCallbacks.annLeftDriveMotor(uiServer.announceLeftMotorSpeed)
-    arduinoCallbacks.annRightDriveMotor(uiServer.announceRightMotorSpeed)
+  else:
+    arduinoCallbacks.annLeftDriveMotor.register(uiServer.announceLeftMotorSpeed)
+    arduinoCallbacks.annRightDriveMotor.register(uiServer.announceRightMotorSpeed)
     arduinoInterface = arduinoInterface(arduinoCallbacks)
 
     servercallbacks = uiServer.getCallbacks()
@@ -61,4 +61,5 @@ if __name__ == '__main__':
   # Main app event loop
   while True:
     uiServer.processMessages()
+    arduinoInterface.processMessages()
     time.sleep(0.01)
