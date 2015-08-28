@@ -123,7 +123,7 @@ class  ThreadedWebSocketServer(threading.Thread):
     ipaddr = parsed.netloc.replace("ws://","").split(':', 1)[0]
     print ("Serving on: "+ipaddr+"-"+str(parsed.port))
 
-    coro = self.__loop.create_server(self.__factory, ipaddr, parsed.port)
+    coro = self.__loop.create_server(self.__factory, "0.0.0.0", parsed.port)
     server = self.__loop.run_until_complete(coro)
 
     try:
