@@ -26,7 +26,7 @@ def DiscoveryClient():
   discoverySocket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, True)
   discoverySocket.settimeout(5)
 
-  discoverySocket.sendto(b"hello", ("<broadcast>", discoveryPort))
+  discoverySocket.sendto(b"hello", ("<broadcast>", 8701))
 
   url = None
 

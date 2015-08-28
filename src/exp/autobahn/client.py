@@ -38,7 +38,7 @@ from urllib.parse import urlparse
 
 import socket
 
-class UiClientProtocol(WebSocketClientProtocol):
+class BotWebSocketClientProtocol(WebSocketClientProtocol):
 
     def onConnect(self, response):
         print("Server connected: {0}".format(response.peer))
@@ -64,7 +64,7 @@ class UiClientProtocol(WebSocketClientProtocol):
         print("WebSocket connection closed: {0}".format(reason))
 
 
-class  UiClient(threading.Thread):
+class  BotWebSocketClient(threading.Thread):
 
   def __init__(self, url=None):
     # First set up thread related  code
@@ -92,7 +92,7 @@ class  UiClient(threading.Thread):
       factory = WebSocketClientFactory(self.__url, debug=False)
       #factory = WebSocketClientFactory("ws://192.168.1.7:8702", debug=False)
 
-      factory.protocol = UiClientProtocol
+      factory.protocol = BotWebSocketClientProtocol
 
       parsed = urlparse(self.__url)
 
@@ -107,6 +107,6 @@ if __name__ == '__main__':
     log.startLogging(sys.stdout)
 
     # Connect with no url to use discovery
-    client = UiClient()
+    client = BotWebSocketClient()
 
     client.run()
