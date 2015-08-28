@@ -121,8 +121,7 @@ class  ThreadedWebSocketClient(threading.Thread):
       print ("Connecting to: "+ipaddr+"-"+str(parsed.port))
 
       print ("Warning more hardcoding")
-      #coro = self.__loop.create_connection(self.__factory, ipaddr, parsed.port)
-      coro = self.__loop.create_connection(self.__factory, "10.0.0.2", 8702)
+      coro = self.__loop.create_connection(self.__factory, ipaddr, parsed.port)
       self.__loop.run_until_complete(coro)
       self.__loop.run_forever()
       self.__loop.close()
