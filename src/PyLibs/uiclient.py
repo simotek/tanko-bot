@@ -47,11 +47,9 @@ class UiClient:
     clientCallbacks.disconnect = self.__uiClientCallbacks.disconnect
     clientCallbacks.message.register(self.onMessage)
 
-    # url = DiscoveryClient()
+    url = DiscoveryClient()
 
-    #self.__client = ThreadedWebSocketClient(url, clientCallbacks)
-    print("warning using hardcoded IP - ")
-    self.__client = ThreadedWebSocketClient("ws://10.0.0.2:8702", clientCallbacks)
+    self.__client = ThreadedWebSocketClient(url, clientCallbacks)
     self.__client.start()
 
 
