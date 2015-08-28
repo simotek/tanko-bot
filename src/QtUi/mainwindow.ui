@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>928</width>
+    <height>910</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-image: url(:/Images/images/background.png);</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="2" column="1">
+       <widget class="QPushButton" name="leftButton">
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: rgba( 35, 35, 35, 0% );
+    border: 1px solid rgb(50, 50, 50);
+}
+
+QPushButton:pressed {
+        border: 1px solid rgb(250, 250, 250);
+}</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="images.qrc">
+          <normaloff>:/Images/images/116846-matte-blue-and-white-square-icon-arrows-triangle-solid-left.png</normaloff>:/Images/images/116846-matte-blue-and-white-square-icon-arrows-triangle-solid-left.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>256</width>
+          <height>256</height>
+         </size>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="forwardButton">
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: rgba( 35, 35, 35, 0% );
+    border: 1px solid rgb(50, 50, 50);
+}
+
+QPushButton:pressed {
+        border: 1px solid rgb(250, 250, 250);
+}</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="images.qrc">
+          <normaloff>:/Images/images/116848-matte-blue-and-white-square-icon-arrows-triangle-solid-up.png</normaloff>:/Images/images/116848-matte-blue-and-white-square-icon-arrows-triangle-solid-up.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>256</width>
+          <height>256</height>
+         </size>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QPushButton" name="reverseButton">
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: rgba( 35, 35, 35, 0% );
+    border: 1px solid rgb(50, 50, 50);
+}
+
+QPushButton:pressed {
+        border: 1px solid rgb(250, 250, 250);
+}</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="images.qrc">
+          <normaloff>:/Images/images/116845-matte-blue-and-white-square-icon-arrows-triangle-solid-down.png</normaloff>:/Images/images/116845-matte-blue-and-white-square-icon-arrows-triangle-solid-down.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>256</width>
+          <height>256</height>
+         </size>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QPushButton" name="stopButton">
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: rgba( 35, 35, 35, 0% );
+    border: 1px solid rgb(50, 50, 50);
+}
+
+QPushButton:pressed {
+        border: 1px solid rgb(250, 250, 250);
+}</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="images.qrc">
+          <normaloff>:/Images/images/Stop.png</normaloff>:/Images/images/Stop.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>256</width>
+          <height>256</height>
+         </size>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="4">
+       <widget class="QPushButton" name="rightButton">
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: rgba( 35, 35, 35, 0% );
+    border: 1px solid rgb(50, 50, 50);
+}
+
+QPushButton:pressed {
+        border: 1px solid rgb(250, 250, 250);
+}</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="images.qrc">
+          <normaloff>:/Images/images/116847-matte-blue-and-white-square-icon-arrows-triangle-solid-right.png</normaloff>:/Images/images/116847-matte-blue-and-white-square-icon-arrows-triangle-solid-right.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>256</width>
+          <height>256</height>
+         </size>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="2" column="5">
+       <spacer name="horizontalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="2" column="0">
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="images.qrc"/>
+ </resources>
+ <connections/>
+</ui>
