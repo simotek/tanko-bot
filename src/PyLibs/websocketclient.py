@@ -75,6 +75,7 @@ class ThreadedClientProtocol(WebSocketClientProtocol):
 
 class ThreadedClientFactory(WebSocketClientFactory):
     def __init__(self, url, callbacks, debug=False, debugCodePaths=False):
+        print ("URL is: "+url)
         WebSocketClientFactory.__init__(self, url, debug=debug, debugCodePaths=debugCodePaths)
         self.__clients = []
         self.__callbacks = callbacks
@@ -119,6 +120,7 @@ class  ThreadedWebSocketClient(threading.Thread):
       ipaddr = parsed.netloc.replace("ws://","").split(':', 1)[0]
       print ("Connecting to: "+ipaddr+"-"+str(parsed.port))
 
+      print ("Warning more hardcoding")
       coro = self.__loop.create_connection(self.__factory, ipaddr, parsed.port)
       self.__loop.run_until_complete(coro)
       self.__loop.run_forever()

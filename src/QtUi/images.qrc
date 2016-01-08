@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/Images">
+        <file>images/116845-matte-blue-and-white-square-icon-arrows-triangle-solid-down.png</file>
+        <file>images/116846-matte-blue-and-white-square-icon-arrows-triangle-solid-left.png</file>
+        <file>images/116847-matte-blue-and-white-square-icon-arrows-triangle-solid-right.png</file>
+        <file>images/116848-matte-blue-and-white-square-icon-arrows-triangle-solid-up.png</file>
+        <file>images/background.png</file>
+        <file>images/Stop.png</file>
+    </qresource>
+</RCC>
