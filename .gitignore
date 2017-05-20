@@ -1,3 +1,8 @@
+## Qt User files
+*.pro.user
+## Qt build directories
+src/build-*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
