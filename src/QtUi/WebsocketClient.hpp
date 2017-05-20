@@ -35,7 +35,7 @@
 #define ECHOCLIENT_H
 
 #include <QtCore/QObject>
-#include <QtWebSockets/QWebSocket>
+#include <QWebSocket>
 
 class WebsocketClient : public QObject
 {
@@ -56,6 +56,8 @@ public slots:
     void right();
     void stop();
 
+    void setSpeed(int speed);
+
     void onError(QAbstractSocket::SocketError error);
 
 private Q_SLOTS:
@@ -67,6 +69,8 @@ private Q_SLOTS:
 private:
     QWebSocket m_webSocket;
     QUrl m_url;
+    int m_speed;
+
     bool m_debug;
 };
 

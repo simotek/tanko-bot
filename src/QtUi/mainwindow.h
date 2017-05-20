@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "WebsocketClient.hpp"
 
 namespace Ui {
 class MainWindow;
@@ -15,8 +16,13 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+public slots:
+    void setSpeed(int val);
+
 private:
-    Ui::MainWindow *ui;
+    Ui::MainWindow *m_pUi;
+
+    WebsocketClient * m_pClient;
 };
 
 #endif // MAINWINDOW_H

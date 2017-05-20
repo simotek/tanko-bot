@@ -38,11 +38,9 @@ QT_USE_NAMESPACE
 WebsocketClient::WebsocketClient(const QUrl &url, bool debug, QObject *parent) :
     QObject(parent),
     m_url(url),
+    m_speed(0),
     m_debug(debug)
 {
-
-
-
     if (m_debug)
         qDebug() << "WebSocket server:" << url;
     connect(&m_webSocket, &QWebSocket::connected, this, &WebsocketClient::onConnected);
@@ -96,27 +94,32 @@ void WebsocketClient::onTextMessageReceived(QString message)
 
 void WebsocketClient::forward()
 {
-    m_webSocket.sendTextMessage(QStringLiteral("DMC:80,80"));
+    m_webSocket.sendTextMessage(QString("DMC:%1,%2").arg(m_speed).arg(m_speed));
 }
 
 void WebsocketClient::reverse()
 {
-    m_webSocket.sendTextMessage(QStringLiteral("DMC:-80,-80"));
+    m_webSocket.sendTextMessage(QString("DMC:-%1,-%2").arg(m_speed).arg(m_speed));
 }
 
 void WebsocketClient::left()
 {
-    m_webSocket.sendTextMessage(QStringLiteral("DMC:-80,80"));
+    m_webSocket.sendTextMessage(QString("DMC:-%1,%2").arg(m_speed).arg(m_speed));
 }
 
 void WebsocketClient::right()
 {
-    m_webSocket.sendTextMessage(QStringLiteral("DMC:80,-80"));
+    m_webSocket.sendTextMessage(QString("DMC:%1,-%2").arg(m_speed).arg(m_speed));
 }
 
 void WebsocketClient::stop()
 {
-    m_webSocket.sendTextMessage(QStringLiteral("DMC:0,0"));
+    m_webSocket.sendTextMessage(QString("DMC:0,0"));
+}
+
+void WebsocketClient::setSpeed(int speed)
+{
+    m_speed = speed;
 }
 
 void WebsocketClient::onError(QAbstractSocket::SocketError error)
