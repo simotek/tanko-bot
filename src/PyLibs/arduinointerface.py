@@ -38,7 +38,7 @@ class ArduinoInterface:
 
     self.__callbacks = callbacks
 
-    self.__serial = ThreadedSerial("/dev/ttyS2", 115200)
+    self.__serial = ThreadedSerial("/dev/ttyS1", 57600)
     self.__serial.setSerialRecieveFunction(self.onMessage)
     self.__serial.create()
 
