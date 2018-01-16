@@ -74,7 +74,7 @@ class ThreadedServerFactory(WebSocketServerFactory):
     """
 
     def __init__(self, url, callbacks, debug=False, debugCodePaths=False):
-        WebSocketServerFactory.__init__(self, url, debug=debug, debugCodePaths=debugCodePaths)
+        WebSocketServerFactory.__init__(self, url)
         self.__callbacks = callbacks
         self.__clients = []
 
