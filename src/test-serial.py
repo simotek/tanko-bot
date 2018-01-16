@@ -15,12 +15,13 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-
+import argparse
 import threading
+import time
 
-from .threadedserial import ThreadedSerial
-from .util import CallbackHelper
-from .constants import *
+from PyLibs.threadedserial import ThreadedSerial
+from PyLibs.util import CallbackHelper
+from PyLibs.constants import *
 
 class SerialTestParsingException(Exception):
     pass
@@ -49,6 +50,7 @@ class SerialTestInterface:
 
   # Adds message to queue for processing
   def onMessage(self, message):
+    print("msg recieved")
     self.__dataLock.acquire()
     self.__messageQueue.append(message)
     self.__dataLock.release()
