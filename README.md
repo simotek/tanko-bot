@@ -11,3 +11,7 @@ Talk from openSUSE Conference 2017:
 Driving around the house:
 
 [![Driving around the house](https://img.youtube.com/vi/AMz01IRAgZI/0.jpg)](https://www.youtube.com/watch?v=AMz01IRAgZI)
+
+## Required Python Modules
+  * autobahn
+  * pyserial

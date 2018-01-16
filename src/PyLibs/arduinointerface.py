@@ -94,6 +94,12 @@ class ArduinoInterface:
     else:
       print("Unknown command:"+command)
 
+  def sendReady(self):
+    message = str(CONST_SERVER_COMMAND_READY)
+    
+    print (message)
+    self.__serial.write(message)
+    
   def sendDriveMotorSpeed(self, args):
     message = str(CONST_SERVER_COMMAND_MOTOR_DRIVE+":"+args[0]+","+args[1]+"\n")
  

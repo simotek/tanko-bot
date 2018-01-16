@@ -56,7 +56,8 @@ if __name__ == '__main__':
     servercallbacks.sendDriveMotor.register(arduinoInterface.sendDriveMotorSpeed)
     uiServer.setCallbacks(servercallbacks)
 
-
+  # Send Ready for status LED
+  ArduinoInterface.sendReady()
 
   # Main app event loop
   while True:
