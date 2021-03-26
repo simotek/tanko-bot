@@ -35,6 +35,7 @@
 #define ECHOCLIENT_H
 
 #include <QtCore/QObject>
+#include <QUrl>
 #include <QWebSocket>
 
 class WebsocketClient : public QObject

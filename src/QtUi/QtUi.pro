@@ -4,9 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui websockets
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui widgets websockets
 
 TARGET = QtUi
 TEMPLATE = app
@@ -28,6 +26,20 @@ RESOURCES += \
     images.qrc
 
 DISTFILES += \
-    ../build-QtUi-Android_for_armeabi_v7a_GCC_4_9_Qt_5_5_0-Debug/android-build/AndroidManifest.xml \
-    ../build-QtUi-Android_for_armeabi_v7a_GCC_4_9_Qt_5_5_0-Debug/android-build/bin/AndroidManifest.xml
+    android/AndroidManifest.xml \
+    android/Makefile \
+    android/Makefile \
+    android/Makefile \
+    android/android-templates-deployment-settings.json \
+    android/build.gradle \
+    android/gradle.properties \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew \
+    android/gradlew.bat \
+    android/libdummy.prl \
+    android/res/values/libs.xml \
+    android/templates
+
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
 

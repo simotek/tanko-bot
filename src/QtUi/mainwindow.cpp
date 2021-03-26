@@ -4,7 +4,8 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     m_pUi(new Ui::MainWindow),
-    m_pClient(new WebsocketClient(QUrl(QStringLiteral("ws://192.168.69.242:8702")), true))
+    m_pClient(new WebsocketClient(QUrl(QStringLiteral("ws://172.16.1.61:8702")), true))
+    // m_pClient(new WebsocketClient(QUrl(QStringLiteral("ws://192.168.69.242:8702")), true))
 {
     m_pUi->setupUi(this);
 
